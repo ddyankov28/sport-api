@@ -2,6 +2,8 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.7'
 	id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.17.0'
+    id("org.flywaydb.flyway") version "11.17.0"
 }
 
 group = 'sport.api'
@@ -14,6 +16,35 @@ java {
 	}
 }
 
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = layout.projectDirectory.file("src/main/resources/openapi/stadiums-api.yaml").asFile.path
+    outputDir = layout.buildDirectory.dir("generated").get().asFile.path
+    apiPackage = "sport.api.api"
+    modelPackage = "sport.api.model"
+    invokerPackage = "sport.api.invoker"
+    additionalProperties = [
+            interfaceOnly          : "true",
+            useTags                : "true",
+            reactive               : "false",
+            dateLibrary            : "java8",
+            skipDefaultInterface   : "true",
+            useLombok              : "true",
+            library                : "spring-boot",
+            useJakartaEe           : "true"
+    ]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir(layout.buildDirectory.dir('generated/src/main/java').get().asFile)
+        }
+    }
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
@@ -25,14 +56,33 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.h2database:h2'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.22'
+
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+
+    implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    implementation 'org.flywaydb:flyway-core:10.15.0'
+    implementation 'org.flywaydb:flyway-mysql:10.15.0'
 }
 
 tasks.named('test') {
